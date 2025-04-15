@@ -83,6 +83,55 @@ MCP_Voice_Transfer/
   - 그러나 해당 구조로 아키텍처 구현 시, 배포할 때 컨테이너 개수를 조절하기 힘들 수 있음
   - 컨테이너 개수가 지나치게 늘어날 경우 테스트 환경에서 운영 구조를 생각하기 어려울 수 있고 서버 비용이 많이 부과될 위험이 있음
 ```
+MCP_Voice_Transfer/
+├── services/
+│   ├── dialog-service/              # 대화 흐름 제어 (NLU 포함 가능)
+│   │   ├── app/
+│   │   │   └── main.py              # 서비스 진입점
+│   │   ├── modules/
+│   │   │   └── dialog_manager/      # 대화 흐름 로직
+│   │   ├── requirements.txt         # 서비스별 Python 의존성
+│   │   └── Dockerfile               # 컨테이너 정의
+
+│   ├── transfer-service/            # 송금 처리 (핵심 도메인)
+│   │   ├── app/
+│   │   ├── modules/transfer/        # 송금 로직
+│   │   └── Dockerfile
+
+│   ├── auth-service/                # 1차/2차 인증 처리
+│   │   ├── app/
+│   │   ├── modules/auth/            # 인증 관련 로직
+│   │   └── Dockerfile
+
+│   ├── fds-service/                 # 이상 거래 탐지 (FDS)
+│   │   ├── app/
+│   │   ├── consumer_fds.py          # FDS 이벤트 수신 로직
+│   │   └── Dockerfile
+
+│   ├── rag-service/                 # 보안 질문 응답 처리
+│   │   ├── app/
+│   │   ├── consumer_rag.py          # 질문 이벤트 수신 및 RAG 호출
+│   │   └── Dockerfile
+
+│   ├── logger-service/              # 이벤트 로깅/트랜잭션 기록
+│   │   ├── app/
+│   │   ├── consumer_logger.py       # 로그 이벤트 수신 및 저장
+│   │   └── Dockerfile
+
+│   └── api-gateway/                 # 클라이언트 진입점 (FastAPI/NGINX)
+│       ├── main.py
+│       └── routes/
+│           ├── dialog.py
+│           ├── transfer.py
+│           └── auth.py
+
+├── shared/                          # 공통 코드 저장소
+│   ├── proto/                       # gRPC 메시지 및 서비스 정의
+│   ├── utils/                       # 유틸리티 함수
+│   └── constants.py                 # 공통 상수 정의
+
+├── docker-compose.yml              # 전체 마이크로서비스 오케스트레이션 구성
+└── README.md                       # 프로젝트 설명서
 
 ```
 
