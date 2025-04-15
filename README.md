@@ -26,10 +26,62 @@
 
 #### 2. 폴더 구조 및 아키텍처
 - 모놀리식 + EDA 하이브리드
+  -  현재 깃허브 폴더 구조를 보다 효율적으로 수정하고, Redis Pub/Sub 구조를 채택한 것임.
+  -  아래 기능들만 eda 구조로 전환하면 좋을 것 같음
+    -  송금 완료 이벤트 → 리스크 탐지, 트랜잭션 기록, 보안 알림 전송
+    -  로그인 성공 이벤트 → 2차 인증 요청, 사용자 접속 분석
+    -  질문 요청 이벤트 → RAG 호출, 응답 비동기 반환
+  -  수정 사항
+    - 뒤섞여 있는 backend/ 모듈을 분리
+    - 추상적 폴더 이름을 실제 기능 단위(nlu, dialog_manager, auth, rag)로 명확히 구분
+    - Frontend 내 lib/ 내 폴더를 아키텍처 단위로 분리해서 backend와 구조를 대응.
 ```
+MCP_Voice_Transfer/
+├── backend/
+│   ├── api/                      # REST/gRPC 엔드포인트
+│   │   ├── endpoints/           # 기능별 라우터 (transfer, auth, nlu 등)
+│   │   └── main.py              # FastAPI 앱 진입점
+│   ├── core/                    # 인증, 설정 등 핵심 로직
+│   │   ├── auth/                # 1차/2차 인증 처리
+│   │   └── security.py          # 인증 관련 보안 유틸
+│   ├── modules/                 # 각 도메인 기능 모듈
+│   │   ├── nlu/                 # Intent/Slot 분석
+│   │   ├── dialog_manager/      # 대화 흐름 관리
+│   │   ├── transfer/            # 송금 처리 로직
+│   │   ├── rag/                 # 보안 질문 응답용 RAG 모듈
+│   │   ├── fds/                 # 이상 거래 탐지 로직
+│   │   ├── stt/                 # 서버 STT 처리 모듈
+│   │   └── logger/              # 로그 저장소, DB 연동
+│   ├── events/                  # 이벤트 프로듀서 / 컨슈머
+│   │   ├── producer.py          # 송금 완료 시 이벤트 발행
+│   │   ├── consumer_rag.py      # 질문 응답 요청 이벤트 구독
+│   │   ├── consumer_logger.py   # 트랜잭션 기록 이벤트 구독
+│   │   └── consumer_fds.py      # 리스크 탐지 이벤트 구독
+│   ├── message_broker/          # Kafka/Redis stream 설정
+│   │   └── kafka_client.py      # Kafka 프로듀서/컨슈머 공통 로직
+│   ├── proto/                   # 메시지 정의 (향후 확장 대비)
+│   ├── logs/                    # 로그 저장소 (단순 파일 or DB 연동)
+│   ├── requirements.txt         # Python 의존성 명세
+│   └── docker-compose.yml       # App 전체 실행 구성 (DB 포함)
 
+├── frontend/
+│   ├── lib/
+│   │   ├── stt/                 # Whisper / Android STT 연동
+│   │   ├── post_processing/     # STT 후처리 (정규화 등)
+│   │   ├── nlu/                 # 클라이언트 Intent/Slot 분석
+│   │   ├── dialog/              # 대화 흐름 UI 및 상태 관리
+│   │   ├── auth/                # 1차 인증 처리
+│   │   └── tts/                 # 음성 합성 (TTS) 출력 처리
+│   ├── android/
+│   ├── ios/
+│   └── pubspec.yaml             # Flutter 메타 정보 및 의존성
+
+├── README.md                    # 프로젝트 설명서
 ```
 - MSA
+  - 대규모 서비스를 제공하는 실무 환경에 가까운 구조.    
+  - 그러나 해당 구조로 아키텍처 구현 시, 배포할 때 컨테이너 개수를 조절하기 힘들 수 있음
+  - 컨테이너 개수가 지나치게 늘어날 경우 테스트 환경에서 운영 구조를 생각하기 어려울 수 있고 서버 비용이 많이 부과될 위험이 있음
 ```
 
 ```
