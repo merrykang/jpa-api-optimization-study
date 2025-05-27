@@ -1,0 +1,27 @@
+spring:
+  datasource:
+    url: jdbc:h2:tcp://localhost/~/jpashop
+#    url: jdbc:h2:~/jpashop
+#    url: jdbc:h2:tcp://localhost:9092//Users/User/jpashop
+#    url: jdbc:h2:~/jpashop
+    username: sa
+    password:
+    driver-class-name: org.h2.Driver
+
+  jpa:
+    hibernate:
+      # ddl-auto
+      # Spring Boot + JPA 환경에서 애플리케이션 실행 시, Hibernate가 데이터베이스의 스키마를 어떻게 다룰지를 결정
+      # create : 애플리케이션 실행 시 기존 테이블을 모두 삭제하고 다시 생성
+      # none : DDL 자동 실행 안 함 → 테이블 생성/삭제/수정 없음
+      ddl-auto: create
+#      ddl-auto: none
+    properties:
+      hibernate:
+#        show_sql: true
+        format_sql: true
+#        default_batch_fetch_size: 100 #최적화 옵션
+
+logging.level:
+  org.hibernate.SQL: debug
+#  org.hibernate.type: trace
